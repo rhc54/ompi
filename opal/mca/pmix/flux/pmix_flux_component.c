@@ -91,7 +91,7 @@ static int pmix_flux_component_register(void)
 static int pmix_flux_component_query(mca_base_module_t **module, int *priority)
 {
     /* disqualify ourselves if we are not under Flux */
-    if (NULL == getenv("FLUX_URI")) {
+    if (NULL == getenv("FLUX_JOB_ID")) {
         *priority = 0;
         *module = NULL;
         return OPAL_ERROR;

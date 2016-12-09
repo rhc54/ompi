@@ -7,8 +7,8 @@
  * $HEADER$
  */
 
-#ifndef MCA_PMIX_S1_H
-#define MCA_PMIX_S1_H
+#ifndef MCA_PMIX_FLUX_H
+#define MCA_PMIX_FLUX_H
 
 #include "opal_config.h"
 
@@ -28,4 +28,4 @@ OPAL_DECLSPEC extern const opal_pmix_base_module_t opal_pmix_flux_module;
 
 END_C_DECLS
 
-#endif /* MCA_PMIX_S1_H */
+#endif /* MCA_PMIX_FLUX_H */

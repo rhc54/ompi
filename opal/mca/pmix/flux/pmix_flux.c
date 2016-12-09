@@ -24,7 +24,11 @@
 #include "opal/util/show_help.h"
 
 #include <string.h>
+#if defined (HAVE_FLUX_PMI_LIBRARY)
 #include <pmi.h>
+#else
+#include <dlfcn.h>
+#endif
 
 #include "opal/mca/pmix/base/base.h"
 #include "opal/mca/pmix/base/pmix_base_fns.h"
@@ -119,6 +123,175 @@ static char* pmix_error(int pmix_err);
             pmix_error(pmi_err));                        \
     } while(0);
 
+
+#if !defined (HAVE_FLUX_PMI_LIBRARY)
+//
+// Wrapper functions for dlopened() PMI library.
+//
+#define PMI_SUCCESS                  0
+#define PMI_FAIL                    -1
+#define PMI_ERR_INIT                 1
+#define PMI_ERR_NOMEM                2
+#define PMI_ERR_INVALID_ARG          3
+#define PMI_ERR_INVALID_KEY          4
+#define PMI_ERR_INVALID_KEY_LENGTH   5
+#define PMI_ERR_INVALID_VAL          6
+#define PMI_ERR_INVALID_VAL_LENGTH   7
+#define PMI_ERR_INVALID_LENGTH       8
+#define PMI_ERR_INVALID_NUM_ARGS     9
+#define PMI_ERR_INVALID_ARGS        10
+#define PMI_ERR_INVALID_NUM_PARSED  11
+#define PMI_ERR_INVALID_KEYVALP     12
+#define PMI_ERR_INVALID_SIZE        13
+
+static void *dso = NULL;
+
+static int PMI_Init (int *spawned)
+{
+    int (*f)(int *);
+    if (!dso) {
+        const char *path;
+        if ((path = getenv ("FLUX_PMI_LIBRARY_PATH")))
+            dso = dlopen (path, RTLD_NOW | RTLD_GLOBAL);
+        if (!dso)
+            return PMI_FAIL;
+    }
+    *(void **)(&f) = dlsym (dso, "PMI_Init");
+    return f ? f (spawned) : PMI_FAIL;
+}
+
+static int PMI_Initialized (int *initialized)
+{
+    int (*f)(int *);
+    if (!dso) {
+        if (initialized)
+            *initialized = 0;
+        return PMI_SUCCESS;
+    }
+    *(void **)(&f) = dlsym (dso, "PMI_Initialized");
+    return f ? f (initialized) : PMI_FAIL;
+}
+
+static int PMI_Finalize (void)
+{
+    int (*f)(void);
+    int rc;
+    if (!dso)
+        return PMI_SUCCESS;
+    *(void **)(&f) = dlsym (dso, "PMI_Finalize");
+    rc = f ? f () : PMI_FAIL;
+    dlclose (dso);
+    return rc;
+}
+
+static int PMI_Get_size (int *size)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Get_size") : NULL;
+    return f ? f (size) : PMI_FAIL;
+}
+
+static int PMI_Get_rank (int *rank)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Get_rank") : NULL;
+    return f ? f (rank) : PMI_FAIL;
+}
+
+static int PMI_Get_universe_size (int *size)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Get_universe_size") : NULL;
+    return f ? f (size) : PMI_FAIL;
+}
+
+static int PMI_Get_appnum (int *appnum)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Get_appnum") : NULL;
+    return f ? f (appnum) : PMI_FAIL;
+}
+
+static int PMI_Barrier (void)
+{
+    int (*f)(void);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Barrier") : NULL;
+    return f ? f () : PMI_FAIL;
+}
+
+static int PMI_Abort (int exit_code, const char *error_msg)
+{
+    int (*f)(int, const char *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Abort") : NULL;
+    return f ? f (exit_code, error_msg) : PMI_FAIL;
+}
+
+static int PMI_KVS_Get_my_name (char *kvsname, int length)
+{
+    int (*f)(char *, int);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Get_my_name") : NULL;
+    return f ? f (kvsname, length) : PMI_FAIL;
+}
+
+static int PMI_KVS_Get_name_length_max (int *length)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Get_name_length_max") : NULL;
+    return f ? f (length) : PMI_FAIL;
+}
+
+static int PMI_KVS_Get_key_length_max (int *length)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Get_key_length_max") : NULL;
+    return f ? f (length) : PMI_FAIL;
+}
+
+static int PMI_KVS_Get_value_length_max (int *length)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Get_value_length_max") : NULL;
+    return f ? f (length) : PMI_FAIL;
+}
+
+static int PMI_KVS_Put (const char *kvsname, const char *key, const char *value)
+{
+    int (*f)(const char *, const char *, const char *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Put") : NULL;
+    return f ? f (kvsname, key, value) : PMI_FAIL;
+}
+
+static int PMI_KVS_Commit (const char *kvsname)
+{
+    int (*f)(const char *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Commit") : NULL;
+    return f ? f (kvsname) : PMI_FAIL;
+}
+
+static int PMI_KVS_Get (const char *kvsname, const char *key,
+		        char *value, int len)
+{
+    int (*f)(const char *, const char *, char *, int);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_KVS_Get") : NULL;
+    return f ? f (kvsname, key, value, len) : PMI_FAIL;
+}
+
+static int PMI_Get_clique_size (int *size)
+{
+    int (*f)(int *);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Get_clique_size") : NULL;
+    return f ? f (size) : PMI_FAIL;
+}
+
+static int PMI_Get_clique_ranks (int *ranks, int length)
+{
+    int (*f)(int *, int);
+    *(void **)(&f) = dso ? dlsym (dso, "PMI_Get_clique_ranks") : NULL;
+	return f ? f (ranks, length) : PMI_FAIL;
+}
+
+#endif /* !HAVE_FLUX_PMI_LIBRARY */
+
 static int kvs_get(const char key[], char value [], int maxvalue)
 {
     int rc;
@@ -143,24 +316,24 @@ static int kvs_put(const char key[], const char value[])
 
 static int flux_init(void)
 {
-    PMI_BOOL initialized;
+    int initialized;
     int spawned;
     int rc, ret = OPAL_ERROR;
     int i, rank, lrank, nrank;
     char *pmix_id, tmp[64];
     opal_value_t kv;
-    char *str;
-    uint32_t ui32;
+    const char *jobid;
     opal_process_name_t ldr;
     char **localranks=NULL;
     opal_process_name_t wildcard_rank;
+    char *str;
 
     if (PMI_SUCCESS != (rc = PMI_Initialized(&initialized))) {
         OPAL_PMI_ERROR(rc, "PMI_Initialized");
         return OPAL_ERROR;
     }
 
-    if (PMI_TRUE != initialized && PMI_SUCCESS != (rc = PMI_Init(&spawned))) {
+    if (!initialized && PMI_SUCCESS != (rc = PMI_Init(&spawned))) {
         OPAL_PMI_ERROR(rc, "PMI_Init");
         return OPAL_ERROR;
     }
@@ -196,7 +369,7 @@ static int flux_init(void)
         goto err_exit;
     }
     /* Get domain id */
-    if (PMI_SUCCESS != (rc = PMI_Get_kvs_domain_id(pmix_id, pmix_vallen_max))) {
+    if (PMI_SUCCESS != (rc = PMI_KVS_Get_my_name (pmix_id, pmix_vallen_max))) {
         free(pmix_id);
         goto err_exit;
     }
@@ -209,16 +382,10 @@ static int flux_init(void)
         goto err_exit;
     }
 
-    /* Slurm PMI provides the job id as an integer followed
-     * by a '.', followed by essentially a stepid. The first integer
-     * defines an overall job number. The second integer is the number of
-     * individual jobs we have run within that allocation. */
-    flux_pname.jobid = strtoul(pmix_id, &str, 10);
-    flux_pname.jobid = (flux_pname.jobid << 16) & 0xffff0000;
-    if (NULL != str) {
-        ui32 = strtoul(str, NULL, 10);
-        flux_pname.jobid |= (ui32 & 0x0000ffff);
-    }
+    /* get integer job id */
+    flux_pname.jobid = 0;
+    if ((jobid = getenv ("FLUX_JOB_ID")))
+        flux_pname.jobid = strtoul(jobid, NULL, 10);
     ldr.jobid = flux_pname.jobid;
     flux_pname.vpid = rank;
     /* store our name in the opal_proc_t so that
@@ -614,7 +781,7 @@ static int flux_fencenb(opal_list_t *procs, int collect_data,
 {
     pmi_opcaddy_t *op;
 
-    /* thread-shift this so we don't block in SLURM's barrier */
+    /* thread-shift this so we don't block in PMI barrier */
     op = OBJ_NEW(pmi_opcaddy_t);
     op->opcbfunc = cbfunc;
     op->cbdata = cbdata;
@@ -625,7 +792,7 @@ static int flux_fencenb(opal_list_t *procs, int collect_data,
     return OPAL_SUCCESS;
 }
 
-#define S1_WAIT_FOR_COMPLETION(a)               \
+#define FLUX_WAIT_FOR_COMPLETION(a)             \
     do {                                        \
         while ((a)) {                           \
             usleep(10);                         \
@@ -649,7 +816,7 @@ static int flux_fence(opal_list_t *procs, int collect_data)
 {
     struct fence_result result = { 1, OPAL_SUCCESS };
     flux_fencenb(procs, collect_data, fence_release, (void*)&result);
-    S1_WAIT_FOR_COMPLETION(result.flag);
+    FLUX_WAIT_FOR_COMPLETION(result.flag);
     return result.status;
 }
 
@@ -673,23 +840,18 @@ static int flux_get(const opal_process_name_t *id,
 
 static int flux_publish(opal_list_t *info)
 {
-    // SLURM PMIv1 doesn't implement this function
-
     return OPAL_ERR_NOT_SUPPORTED;
 }
 
 static int flux_lookup(opal_list_t *data, opal_list_t *info)
 {
     // Allocate mem for port here? Otherwise we won't get success!
-    // SLURM PMIv1 doesn't implement this function
 
     return OPAL_ERR_NOT_SUPPORTED;
 }
 
 static int flux_unpublish(char **keys, opal_list_t *info)
 {
-    // SLURM PMIv1 doesn't implement this function
-
     return OPAL_ERR_NOT_SUPPORTED;
 }
 
@@ -740,7 +902,7 @@ static char* pmix_error(int pmix_err)
     case PMI_ERR_INVALID_KEYVALP: err_msg = "Invalid keyvalp argument"; break;
     case PMI_ERR_INVALID_SIZE: err_msg = "Invalid size argument"; break;
 #if defined(PMI_ERR_INVALID_KVS)
-        /* pmix.h calls this a valid return code but mpich doesn't define it (slurm does). */
+        /* pmix.h calls this a valid return code but mpich doesn't define it */
     case PMI_ERR_INVALID_KVS: err_msg = "Invalid kvs argument"; break;
 #endif
     case PMI_SUCCESS: err_msg = "Success"; break;
