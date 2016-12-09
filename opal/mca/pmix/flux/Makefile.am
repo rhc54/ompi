@@ -27,12 +27,12 @@ endif
 mcacomponentdir = $(opallibdir)
 mcacomponent_LTLIBRARIES = $(component_install)
 mca_pmix_flux_la_SOURCES = $(sources)
-mca_pmix_flux_la_CPPFLAGS = $(flux_CPPFLAGS)
-mca_pmix_flux_la_LDFLAGS = -module -avoid-version $(flux_LDFLAGS)
-mca_pmix_flux_la_LIBADD = $(flux_LIBS)
+mca_pmix_flux_la_CPPFLAGS = $(FLUX_PMI_CFLAGS)
+mca_pmix_flux_la_LDFLAGS = -module -avoid-version
+mca_pmix_flux_la_LIBADD = $(FLUX_PMI_LIBS)
 
 noinst_LTLIBRARIES = $(component_noinst)
 libmca_pmix_flux_la_SOURCES =$(sources)
-libmca_pmix_flux_la_CPPFLAGS = $(flux_CPPFLAGS)
-libmca_pmix_flux_la_LDFLAGS = -module -avoid-version $(flux_LDFLAGS)
-libmca_pmix_flux_la_LIBADD = $(flux_LIBS)
+libmca_pmix_flux_la_CPPFLAGS = $(FLUX_PMI_CFLAGS)
+libmca_pmix_flux_la_LDFLAGS = -module -avoid-version
+libmca_pmix_flux_la_LIBADD = $(FLUX_PMI_LIBS)
