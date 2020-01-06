@@ -12,7 +12,7 @@
  * Copyright (c) 2007-2012 Los Alamos National Security, LLC.  All rights
  *                         reserved.
  * Copyright (c) 2008      Cisco Systems, Inc.  All rights reserved.
- * Copyright (c) 2019      Intel, Inc.  All rights reserved.
+ * Copyright (c) 2019-2020 Intel, Inc.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -156,7 +156,7 @@ int mca_bml_r2_ft_event(int state)
              * Barrier to make all processes have been successfully restarted before
              * we try to remove some restart only files.
              */
-            if( OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+            if( OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0, NULL, 0))) {
                 opal_output(0, "bml:r2: ft_event(Restart): Failed to fence complete\n");
                 return ret;
             }
@@ -228,7 +228,7 @@ int mca_bml_r2_ft_event(int state)
          * Barrier to make all processes have been successfully restarted before
          * we try to remove some restart only files.
          */
-        if( OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+        if( OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0, NULL, 0))) {
             opal_output(0, "bml:r2: ft_event(Restart): Failed to fence complete\n");
             return ret;
         }

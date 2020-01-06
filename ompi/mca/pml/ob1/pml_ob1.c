@@ -21,7 +21,7 @@
  * Copyright (c) 2018      Sandia National Laboratories
  *                         All rights reserved.
  * Copyright (c) 2018 IBM Corporation. All rights reserved.
- * Copyright (c) 2019      Intel, Inc.  All rights reserved.
+ * Copyright (c) 2019-2020 Intel, Inc.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -836,7 +836,7 @@ int mca_pml_ob1_ft_event( int state )
     if(OPAL_CRS_CHECKPOINT == state) {
         if( opal_cr_timing_barrier_enabled ) {
             OPAL_CR_SET_TIMER(OPAL_CR_TIMER_CRCPBR1);
-            if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+            if (OMPI_SUCCESS != (ret = pmix_fence(null, 0, NULL, 0))) {
                 opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
                 return ret;
             }
@@ -850,7 +850,7 @@ int mca_pml_ob1_ft_event( int state )
         if( !first_continue_pass ) {
             if( opal_cr_timing_barrier_enabled ) {
                 OPAL_CR_SET_TIMER(OPAL_CR_TIMER_COREBR0);
-                if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+                if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
                     opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
                     return ret;
                 }
@@ -953,7 +953,7 @@ int mca_pml_ob1_ft_event( int state )
         if( !first_continue_pass ) {
             if( opal_cr_timing_barrier_enabled ) {
                 OPAL_CR_SET_TIMER(OPAL_CR_TIMER_P2PBR1);
-                if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+                if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
                     opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
                     return ret;
                 }
@@ -962,7 +962,7 @@ int mca_pml_ob1_ft_event( int state )
         }
 
         if (opal_cr_continue_like_restart && !first_continue_pass) {
-            if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+            if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
                 opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
                 return ret;
             }
@@ -977,7 +977,7 @@ int mca_pml_ob1_ft_event( int state )
             }
 
             /* Is this barrier necessary ? JJH */
-            if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+            if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
                 opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
                 return ret;
             }
@@ -993,7 +993,7 @@ int mca_pml_ob1_ft_event( int state )
         if( !first_continue_pass ) {
             if( opal_cr_timing_barrier_enabled ) {
                 OPAL_CR_SET_TIMER(OPAL_CR_TIMER_P2PBR2);
-                if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+                if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
                     opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
                     return ret;
                 }
@@ -1009,7 +1009,7 @@ int mca_pml_ob1_ft_event( int state )
          * Exchange the modex information once again.
          * BTLs will have republished their modex information.
          */
-        if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+        if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
             opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
             return ret;
         }
@@ -1024,7 +1024,7 @@ int mca_pml_ob1_ft_event( int state )
         }
 
         /* Is this barrier necessary ? JJH */
-        if (OMPI_SUCCESS != (ret = opal_pmix.fence(NULL, 0))) {
+        if (OMPI_SUCCESS != (ret = PMIx_Fence(NULL, 0,NULL, 0))) {
             opal_output(0, "pml:ob1: ft_event(Restart): Failed to fence complete");
             return ret;
         }

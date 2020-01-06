@@ -11,7 +11,7 @@
  * Copyright (c) 2004-2006 The Regents of the University of California.
  *                         All rights reserved.
  * Copyright (c) 2006      QLogic Corporation. All rights reserved.
- * Copyright (c) 2013-2019 Intel, Inc.  All rights reserved.
+ * Copyright (c) 2013-2020 Intel, Inc.  All rights reserved.
  * Copyright (c) 2014      Los Alamos National Security, LLC. All rights
  *                         reserved.
  * Copyright (c) 2016      Research Organization for Information Science
@@ -159,7 +159,7 @@ int ompi_mtl_psm2_module_init(int local_rank, int num_local_procs) {
     ompi_mtl_psm2.epid = epid;
     ompi_mtl_psm2.mq   = mq;
 
-    OPAL_MODEX_SEND(rc, OPAL_PMIX_GLOBAL,
+    OPAL_MODEX_SEND(rc, PMIX_GLOBAL,
                     &mca_mtl_psm2_component.super.mtl_version,
                     &ompi_mtl_psm2.epid,
                     sizeof(psm2_epid_t));

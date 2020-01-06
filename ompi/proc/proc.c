@@ -13,7 +13,7 @@
  * Copyright (c) 2006-2015 Cisco Systems, Inc.  All rights reserved.
  * Copyright (c) 2012-2015 Los Alamos National Security, LLC.  All rights
  *                         reserved.
- * Copyright (c) 2013-2019 Intel, Inc.  All rights reserved.
+ * Copyright (c) 2013-2020 Intel, Inc.  All rights reserved.
  * Copyright (c) 2014-2017 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * Copyright (c) 2015-2017 Mellanox Technologies. All rights reserved.
@@ -157,7 +157,7 @@ int ompi_proc_complete_init_single (ompi_proc_t *proc)
     {
         uint32_t *ui32ptr;
         ui32ptr = &(proc->super.proc_arch);
-        OPAL_MODEX_RECV_VALUE(ret, OPAL_PMIX_ARCH, &proc->super.proc_name,
+        OPAL_MODEX_RECV_VALUE(ret, PMIX_ARCH, &proc->super.proc_name,
                               (void**)&ui32ptr, OPAL_UINT32);
         if (OPAL_SUCCESS == ret) {
             /* if arch is different than mine, create a new convertor for this proc */
@@ -270,8 +270,8 @@ int ompi_proc_init(void)
     opal_proc_local_set(&proc->super);
 #if OPAL_ENABLE_HETEROGENEOUS_SUPPORT
     /* add our arch to the modex */
-    OPAL_MODEX_SEND_VALUE(ret, OPAL_PMIX_GLOBAL,
-                          OPAL_PMIX_ARCH, &opal_local_arch, OPAL_UINT32);
+    OPAL_MODEX_SEND_VALUE(ret, PMIX_GLOBAL,
+                          PMIX_ARCH, &opal_local_arch, OPAL_UINT32);
     if (OPAL_SUCCESS != ret) {
         return ret;
     }
