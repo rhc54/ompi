@@ -1,7 +1,7 @@
 # Copyright (c) 2013      Mellanox Technologies, Inc.
 #                         All rights reserved.
 # Copyright (c) 2013-2014 Cisco Systems, Inc.  All rights reserved.
-# Copyright (c) 2014-2019 Intel, Inc.  All rights reserved.
+# Copyright (c) 2014-2020 Intel, Inc.  All rights reserved.
 # Copyright (c) 2014-2019 Research Organization for Information Science
 #                         and Technology (RIST).  All rights reserved.
 # $COPYRIGHT$
@@ -43,8 +43,8 @@ install-exec-always: mk_bindir
 	(cd $(DESTDIR)$(bindir); rm -f oshfort$(EXEEXT); $(LN_S) opal_wrapper$(EXEEXT) oshfort$(EXEEXT))
 
 install-exec-rte: mk_bindir
-	(cd $(DESTDIR)$(bindir); rm -f shmemrun$(EXEEXT); $(LN_S) mpirun$(EXEEXT) shmemrun$(EXEEXT))
-	(cd $(DESTDIR)$(bindir); rm -f oshrun$(EXEEXT); $(LN_S) mpirun$(EXEEXT) oshrun$(EXEEXT))
+	(cd $(DESTDIR)$(bindir); rm -f shmemrun$(EXEEXT); $(LN_S) prun$(EXEEXT) shmemrun$(EXEEXT))
+	(cd $(DESTDIR)$(bindir); rm -f oshrun$(EXEEXT); $(LN_S) prun$(EXEEXT) oshrun$(EXEEXT))
 
 install-data-always: mk_pkgdatadir
 	(cd $(DESTDIR)$(pkgdatadir); rm -f oshcc-wrapper-data.txt; $(LN_S) shmemcc-wrapper-data.txt oshcc-wrapper-data.txt)

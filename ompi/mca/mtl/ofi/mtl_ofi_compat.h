@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019 Intel, Inc.  All rights reserved.
+ * Copyright (c) 2015-2020 Intel, Inc.  All rights reserved.
  * Copyright (c) 2015 Cisco Systems, Inc.  All rights reserved.
  * $COPYRIGHT$
  *
@@ -21,14 +21,13 @@
 #if (OPAL_MAJOR_VERSION >= 2)
 
 #include "opal/mca/pmix/pmix-internal.h"
-#include "opal/mca/pmix/pmix_types.h"
 
 #define OFI_COMPAT_MODEX_RECV(ret, mtl_version, proc, ep_name, size) \
     OPAL_MODEX_RECV((ret), (mtl_version), &(proc)->super.proc_name, (ep_name), (size));
 
 #define OFI_COMPAT_MODEX_SEND(ret, mtl_version, ep_name, namelen) \
     OPAL_MODEX_SEND((ret),          \
-                    OPAL_PMIX_GLOBAL,    \
+                    PMIX_GLOBAL,    \
                     (mtl_version),  \
                     (ep_name)[0],   \
                     (namelen));
