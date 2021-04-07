@@ -1059,7 +1059,7 @@ void ompi_rte_wait_for_debugger(void)
 {
     pmix_info_t directive;
     char *evar;
-    int time, code = PMIX_ERR_DEBUGGER_RELEASE;
+    int time, code = PMIX_DEBUGGER_RELEASE;
     pmix_info_t info;
 
     /* check PMIx to see if we are under a debugger */
@@ -1087,7 +1087,7 @@ void ompi_rte_wait_for_debugger(void)
 
     /* notify the host that we are waiting */
     PMIX_INFO_LOAD(&info, PMIX_EVENT_NON_DEFAULT, NULL, PMIX_BOOL);
-    PMIx_Notify_event(PMIX_DEBUG_WAITING_FOR_NOTIFY,
+    PMIx_Notify_event(PMIX_READY_FOR_DEBUG,
                       &opal_process_info.myprocid,
                       PMIX_RANGE_RM, &info, 1, NULL, NULL);
     PMIX_INFO_DESTRUCT(&info);

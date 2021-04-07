@@ -109,6 +109,7 @@ void ompi_proc_destruct(ompi_proc_t* proc)
 static int ompi_proc_allocate (ompi_jobid_t jobid, ompi_vpid_t vpid, ompi_proc_t **procp) {
     ompi_proc_t *proc = OBJ_NEW(ompi_proc_t);
 
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     opal_list_append(&ompi_proc_list, (opal_list_item_t*)proc);
 
     OMPI_CAST_RTE_NAME(&proc->super.proc_name)->jobid = jobid;
@@ -141,6 +142,7 @@ int ompi_proc_complete_init_single (ompi_proc_t *proc)
         /* nothing else to do */
         return OMPI_SUCCESS;
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
 #if OPAL_ENABLE_HETEROGENEOUS_SUPPORT
     /* get the remote architecture - this might force a modex except
@@ -181,6 +183,7 @@ opal_proc_t *ompi_proc_lookup (const opal_process_name_t proc_name)
     ompi_proc_t *proc = NULL;
     int ret;
 
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* try to lookup the value in the hash table */
     ret = opal_hash_table_get_value_ptr (&ompi_proc_hash, &proc_name, sizeof (proc_name), (void **) &proc);
 
@@ -222,6 +225,7 @@ opal_proc_t *ompi_proc_for_name (const opal_process_name_t proc_name)
 {
     ompi_proc_t *proc = NULL;
     int ret;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* try to lookup the value in the hash table */
     ret = opal_hash_table_get_value_ptr (&ompi_proc_hash, &proc_name, sizeof (proc_name), (void **) &proc);
@@ -242,6 +246,7 @@ int ompi_proc_init(void)
         1024;
     ompi_proc_t *proc;
     int ret;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     OBJ_CONSTRUCT(&ompi_proc_list, opal_list_t);
     OBJ_CONSTRUCT(&ompi_proc_lock, opal_mutex_t);
@@ -306,6 +311,7 @@ int ompi_proc_complete_init(void)
     int ret, errcode = OMPI_SUCCESS;
     char *val = NULL;
 
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     opal_mutex_lock (&ompi_proc_lock);
 
     /* Add all local peers first */
@@ -379,6 +385,7 @@ int ompi_proc_finalize (void)
 {
     ompi_proc_t *proc;
 
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* Unregister the local proc from OPAL */
     opal_proc_local_set(NULL);
 
@@ -424,6 +431,7 @@ ompi_proc_t **ompi_proc_get_allocated (size_t *size)
     size_t count = 0;
     ompi_rte_cmp_bitmask_t mask;
     ompi_process_name_t my_name;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* check bozo case */
     if (NULL == ompi_proc_local_proc) {
@@ -431,11 +439,13 @@ ompi_proc_t **ompi_proc_get_allocated (size_t *size)
     }
     mask = OMPI_RTE_CMP_JOBID;
     my_name = *OMPI_CAST_RTE_NAME(&ompi_proc_local_proc->super.proc_name);
-
+    opal_output(0, "%s:%s:%d MY NAME %s", __FILE__, __func__, __LINE__, OPAL_NAME_PRINT(my_name));
     /* First count how many match this jobid */
     opal_mutex_lock (&ompi_proc_lock);
     OPAL_LIST_FOREACH(proc, &ompi_proc_list, ompi_proc_t) {
+        opal_output(0, "%s:%s:%d %s", __FILE__, __func__, __LINE__, OPAL_NAME_PRINT(proc->super.proc_name));
         if (OPAL_EQUAL == ompi_rte_compare_name_fields(mask, OMPI_CAST_RTE_NAME(&proc->super.proc_name), &my_name)) {
+            opal_output(0, "%s:%s:%d ADDING NAME", __FILE__, __func__, __LINE__);
             ++count;
         }
     }
@@ -479,6 +489,7 @@ ompi_proc_t **ompi_proc_world (size_t *size)
     ompi_proc_t **procs;
     size_t count = 0;
 
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* check bozo case */
     if (NULL == ompi_proc_local_proc) {
         return NULL;
@@ -527,6 +538,7 @@ ompi_proc_t** ompi_proc_all(size_t* size)
         (ompi_proc_t**) malloc(opal_list_get_size(&ompi_proc_list) * sizeof(ompi_proc_t*));
     ompi_proc_t *proc;
     size_t count = 0;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     if (NULL == procs) {
         return NULL;
@@ -552,6 +564,7 @@ ompi_proc_t** ompi_proc_all(size_t* size)
 ompi_proc_t** ompi_proc_self(size_t* size)
 {
     ompi_proc_t **procs = (ompi_proc_t**) malloc(sizeof(ompi_proc_t*));
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     if (NULL == procs) {
         return NULL;
     }
@@ -571,6 +584,7 @@ ompi_proc_t * ompi_proc_find ( const ompi_process_name_t * name )
 {
     ompi_proc_t *proc, *rproc=NULL;
     ompi_rte_cmp_bitmask_t mask;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* return the proc-struct which matches this jobid+process id */
     mask = OMPI_RTE_CMP_JOBID | OMPI_RTE_CMP_VPID;
@@ -592,6 +606,7 @@ int ompi_proc_refresh(void)
     ompi_proc_t *proc = NULL;
     ompi_vpid_t i = 0;
     int ret=OMPI_SUCCESS;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     opal_mutex_lock (&ompi_proc_lock);
 
@@ -626,6 +641,7 @@ ompi_proc_pack(ompi_proc_t **proclist, int proclistsize,
 {
     int rc;
     char *nspace;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     opal_mutex_lock (&ompi_proc_lock);
 
@@ -683,6 +699,7 @@ ompi_proc_find_and_add(const ompi_process_name_t * name, bool* isnew)
 {
     ompi_proc_t *proc, *rproc = NULL;
     ompi_rte_cmp_bitmask_t mask;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* return the proc-struct which matches this jobid+process id */
     mask = OMPI_RTE_CMP_JOBID | OMPI_RTE_CMP_VPID;
@@ -716,6 +733,7 @@ ompi_proc_unpack(pmix_data_buffer_t* buf,
 {
     size_t newprocs_len = 0;
     ompi_proc_t **plist=NULL, **newprocs = NULL;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* do not free plist *ever*, since it is used in the remote group
        structure of a communicator */

@@ -30,13 +30,13 @@ int main(int argc, char* argv[])
     MPI_Comm_get_parent(&parent);
     /* If we get COMM_NULL back, then we're the parent */
     if (MPI_COMM_NULL == parent) {
-        if (argc < 3) {
-            printf("%s requires two arguments (%d)- the name of the first host to add, and the name of the second host to add\n", argv[0], argc);
+        if (argc < 2) {
+            printf("%s requires at least one argument (%d)- the name of the first host to add, and optionally the name of the second host to add\n", argv[0], argc);
             exit(1);
         }
 
         pid = getpid();
-        printf("Parent [pid %ld] about to spawn!\n", (long)pid);
+        printf("Parent [pid %ld] about to spawn first time!\n", (long)pid);
         MPI_Info_create(&info);
         MPI_Info_set(info, "PMIX_ADD_HOST", argv[1]);
         if (MPI_SUCCESS != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info,
@@ -52,23 +52,26 @@ int main(int argc, char* argv[])
         }
         MPI_Comm_disconnect(&child);
         printf("Parent disconnected\n");
-        sleep(2);
-        printf("\n\n\n");
-        /* do it again */
-        MPI_Info_set(info, "PMIX_ADD_HOST", argv[2]);
-        if (MPI_SUCCESS != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info,
-                                                0, MPI_COMM_WORLD, &child, MPI_ERRCODES_IGNORE))) {
-            printf("Child failed to spawn\n");
-            return rc;
+        if (argc == 3) {
+            sleep(2);
+            printf("\n\n\n");
+            printf("Parent [pid %ld] about to spawn second time!\n", (long)pid);
+            /* do it again */
+            MPI_Info_set(info, "PMIX_ADD_HOST", argv[2]);
+            if (MPI_SUCCESS != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info,
+                                                    0, MPI_COMM_WORLD, &child, MPI_ERRCODES_IGNORE))) {
+                printf("Child failed to spawn\n");
+                return rc;
+            }
+            printf("Parent done with second spawn\n");
+            if (0 == rank) {
+                msg = 38;
+                printf("Parent sending message to second children\n");
+                MPI_Send(&msg, 1, MPI_INT, 0, 1, child);
+            }
+            MPI_Comm_disconnect(&child);
+            printf("Parent disconnected again\n");
         }
-        printf("Parent done with second spawn\n");
-        if (0 == rank) {
-            msg = 38;
-            printf("Parent sending message to second children\n");
-            MPI_Send(&msg, 1, MPI_INT, 0, 1, child);
-        }
-        MPI_Comm_disconnect(&child);
-        printf("Parent disconnected again\n");
     }
     /* Otherwise, we're the child */
     else {

@@ -120,6 +120,7 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
     ompi_group_t *new_group_pointer;
     ompi_dpm_proct_caddy_t *cd;
 
+    opal_output(0, "CONN-ACC");
     /* set default error return */
     *newcomm = MPI_COMM_NULL;
 
@@ -149,11 +150,12 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
         if (rportlen > 0) rportlen *= -1;
         goto bcast_rportlen;
     }
-
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* everyone constructs the list of members from their communicator */
     pname.jobid = OMPI_PROC_MY_NAME->jobid;
     pname.vpid = OPAL_VPID_WILDCARD;
     if (MPI_COMM_WORLD == comm) {
+        opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
         PMIX_LOAD_PROCID(&pxproc, ompi_process_info.myprocid.nspace, PMIX_RANK_WILDCARD);
         OPAL_PMIX_CONVERT_PROCT_TO_STRING(&nstring, &pxproc);
         opal_argv_append_nosize(&members, nstring);
@@ -163,10 +165,12 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
         opal_argv_append_nosize(&members, nstring);
         free(nstring);
     } else {
+        opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
         if (OMPI_GROUP_IS_DENSE(group)) {
             proc_list = group->grp_proc_pointers;
             dense = true;
         } else {
+            opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
             proc_list = (ompi_proc_t**)calloc(group->grp_proc_count,
                                               sizeof(ompi_proc_t *));
             for (i=0 ; i<group->grp_proc_count ; i++) {
@@ -179,6 +183,7 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
             }
             dense = false;
         }
+        opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
         for (i=0; i < size; i++) {
             opal_process_name_t proc_name;
             if (ompi_proc_is_sentinel (proc_list[i])) {
@@ -196,6 +201,7 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
             proc_list = NULL;
         }
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     if (rank == root) {
         /* the roots for each side exchange their list of participants */
@@ -212,6 +218,7 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
         free(nstring);
         free(key);
         free(pkey);
+        opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
         rc = opal_pmix_base_exchange(&info, &pdat, 600);  // give them 10 minutes
         PMIX_INFO_DESTRUCT(&info);
@@ -219,12 +226,14 @@ int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
             PMIX_PDATA_DESTRUCT(&pdat);
             return rc;
         }
+        opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
         /* save the result */
         rport = strdup(pdat.value.data.string);  // need this later
         rportlen = strlen(rport) + 1;  // retain the NULL terminator
         PMIX_PDATA_DESTRUCT(&pdat);
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
 bcast_rportlen:
     /* if we aren't in a comm_spawn, the non-root members won't have
@@ -238,6 +247,7 @@ bcast_rportlen:
         free(rport);
         goto exit;
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* This is the comm_spawn error case: the root couldn't do the pmix spawn
      * and is now propagating to the local group that this operation has to
@@ -246,6 +256,7 @@ bcast_rportlen:
         rc = rportlen;
         goto exit;
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     if (rank != root) {
         /* non root processes need to allocate the buffer manually */
@@ -255,6 +266,7 @@ bcast_rportlen:
             goto exit;
         }
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* now share the list of remote participants */
     rc = comm->c_coll->coll_bcast(rport, rportlen, MPI_BYTE, root, comm,
                                  comm->c_coll->coll_bcast_module);
@@ -262,6 +274,7 @@ bcast_rportlen:
         free(rport);
         goto exit;
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* initiate a list of participants for the connect,
      * starting with our own members */
@@ -279,6 +292,7 @@ bcast_rportlen:
     }
     opal_argv_free(members);
     members = NULL;
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* rport contains a colon-delimited list
      * of process names for the remote procs - convert it
      * into an argv array */
@@ -290,6 +304,7 @@ bcast_rportlen:
     OBJ_CONSTRUCT(&ilist, opal_list_t);
     OBJ_CONSTRUCT(&rlist, opal_list_t);
 
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     for (i=0; NULL != members[i]; i++) {
         OPAL_PMIX_CONVERT_STRING_TO_PROCT(&pxproc, members[i]);
         plt = OBJ_NEW(opal_proclist_t);
@@ -359,6 +374,7 @@ bcast_rportlen:
         }
     }
     opal_argv_free(members);
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* convert the list of members to a pmix_proc_t array */
     nprocs = opal_list_get_size(&mlist);
@@ -369,11 +385,13 @@ bcast_rportlen:
         ++n;
     }
     OPAL_LIST_DESTRUCT(&mlist);
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* tell the host RTE to connect us - this will download
      * all known data for the nspace's of participating procs
      * so that add_procs will not result in a slew of lookups */
     pret = PMIx_Connect(procs, nprocs, NULL, 0);
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     PMIX_PROC_FREE(procs, nprocs);
     rc = opal_pmix_convert_status(pret);
     if (OPAL_SUCCESS != rc) {
@@ -382,12 +400,14 @@ bcast_rportlen:
         OPAL_LIST_DESTRUCT(&rlist);
         goto exit;
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     if (0 < opal_list_get_size(&ilist)) {
         uint32_t *peer_ranks = NULL;
         int prn, nprn = 0;
         char *val;
         uint16_t u16;
         opal_process_name_t wildcard_rank;
+        opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
         /* convert the list of new procs to a proc_t array */
         new_proc_list = (ompi_proc_t**)calloc(opal_list_get_size(&ilist),
                                               sizeof(ompi_proc_t *));
@@ -449,6 +469,11 @@ bcast_rportlen:
             free(peer_ranks);
         }
         /* call add_procs on the new ones */
+        opal_output(0, "PRINTING LIST");
+        for (i=0; i < opal_list_get_size(&ilist); i++) {
+            opal_output(0, "ilist[%d]: %s", i, OMPI_NAME_PRINT(&new_proc_list[i]->super.proc_name));
+        }
+        opal_output(0, "ADD PROCS");
         rc = MCA_PML_CALL(add_procs(new_proc_list, opal_list_get_size(&ilist)));
         free(new_proc_list);
         new_proc_list = NULL;
@@ -458,8 +483,9 @@ bcast_rportlen:
             goto exit;
         }
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     OPAL_LIST_DESTRUCT(&ilist);
-
+    opal_output(0, "LIST DESTRUCTED");
     /* now deal with the remote group */
     rsize = opal_list_get_size(&rlist);
     new_group_pointer=ompi_group_allocate(rsize);
@@ -468,6 +494,7 @@ bcast_rportlen:
         OPAL_LIST_DESTRUCT(&rlist);
         goto exit;
     }
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
     /* assign group elements */
     i=0;
     OPAL_LIST_FOREACH(cd, &rlist, ompi_dpm_proct_caddy_t) {
@@ -476,6 +503,7 @@ bcast_rportlen:
         OBJ_RETAIN(cd->p);
     }
     OPAL_LIST_DESTRUCT(&rlist);
+    opal_output(0, "%s:%s:%d", __FILE__, __func__, __LINE__);
 
     /* set up communicator structure */
     rc = ompi_comm_set ( &newcomp,                 /* new comm */

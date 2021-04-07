@@ -26,6 +26,7 @@
  * Copyright (c) 2018      FUJITSU LIMITED.  All rights reserved.
  * Copyright (c) 2020      Amazon.com, Inc. or its affiliates.
  *                         All Rights reserved.
+ * Copyright (c) 2021      Nanook Consulting.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -830,12 +831,14 @@ int ompi_mpi_init(int argc, char **argv, int requested, int *provided,
             goto error;
         }
     }
+    opal_output(0, "CALLING ADD PROCS IN INIT");
     ret = MCA_PML_CALL(add_procs(procs, nprocs));
     free(procs);
     /* If we got "unreachable", then print a specific error message.
        Otherwise, if we got some other failure, fall through to print
        a generic message. */
     if (OMPI_ERR_UNREACH == ret) {
+        opal_output(0, "UNREACHABLE");
         opal_show_help("help-mpi-runtime.txt",
                        "mpi_init:startup:pml-add-procs-fail", true);
         error = NULL;
