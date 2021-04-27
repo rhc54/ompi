@@ -10,6 +10,7 @@
 #                         University of Stuttgart.  All rights reserved.
 # Copyright (c) 2004-2005 The Regents of the University of California.
 #                         All rights reserved.
+# Copyright (c) 2021      Nanook Consulting.  All rights reserved.
 # $COPYRIGHT$
 #
 # Additional copyrights may follow
@@ -61,3 +62,13 @@ as the mapping.
 Open MPI was unable to determine the number of nodes in your allocation. We
 are therefore assuming a very large number to ensure you receive proper error
 messages.
+#
+[failed-to-uncompress]
+A compressed message was received that could not be
+decompressed. This is most likely due to a missing
+libz library on the receiving node:
+
+  node:  %s
+
+Please ensure that the libz library is present on all
+compute nodes.
