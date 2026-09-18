@@ -131,46 +131,38 @@ jobs:
         CFLAGS: "-O0"
         MPICC: ${{ matrix.mpicc }}
 
-    - name: Test mpi4py (singleton)
-      run:  python test/main.py -v -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-    - name: Test mpi4py (np=1)
-      run:  mpiexec -n 1 python test/main.py -v -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-    - name: Test mpi4py (np=2)
-      run:  mpiexec -n 2 python test/main.py -v -f -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-    - name: Test mpi4py (np=3)
-      run:  mpiexec -n 3 python test/main.py -v -f -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-    - name: Test mpi4py (np=4)
-      run:  mpiexec -n 4 python test/main.py -v -f -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-    - name: Test mpi4py (np=5)
-      run:  mpiexec -n 5 python test/main.py -v -f -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-
-    - name: Test mpi4py.run
-      run:  python demo/test-run/test_run.py -v
-      if:   ${{ true }}
-      timeout-minutes: 10
-
-    - name: Relocate Open MPI installation
-      run:  mv /opt/openmpi /opt/ompi
-    - name: Update PATH and set OPAL_PREFIX and LD_LIBRARY_PATH
+    - name: Debug spawn hang (watchdog + backtraces)
+      timeout-minutes: 40
       run: |
-        sed -i '\|/opt/openmpi/bin|d' $GITHUB_PATH
-        echo OPAL_PREFIX=/opt/ompi >> $GITHUB_ENV
-        echo LD_LIBRARY_PATH=/opt/ompi/lib >> $GITHUB_ENV
-
-    - name: Test mpi4py (singleton)
-      run:  python test/main.py -v -x TestExcErrhandlerNull
-      if:   ${{ true }}
-      timeout-minutes: 10
-
+        set +e
+        sudo apt-get update -q > /dev/null && sudo apt-get install -y -q gdb > /dev/null
+        which gdb || { echo "NO GDB"; exit 1; }
+        echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+        dump() {
+          ps -eo pid,ppid,stat,etime,cmd --forest | grep -v "ps -eo\|grep" | tail -40
+          for p in $(pgrep -f "prterun|prted") $(for r in $(pgrep -f prterun); do pgrep -P $r; done); do
+            echo "=================== PID $p: $(tr '\0' ' ' < /proc/$p/cmdline)"
+            sudo gdb -p $p -batch -ex "thread apply all bt" 2>&1 | grep -v "^\[New LWP\|^$\|^\[Thread debugging\|libthread_db"
+          done
+        }
+        for i in 1 2 3 4; do
+          what="-x TestExcErrhandlerNull"
+          case $i in
+            1|3) mode=false ;;
+            *)   mode=true ;;
+          esac
+          echo "##### iteration $i: group_connect=$mode $what"
+          OMPI_MCA_mpi_dpm_group_connect=$mode OMPI_MCA_btl_base_verbose=100 mpiexec -n 1 python test/main.py -v $what > run.log 2>&1 &
+          pid=$!
+          for t in $(seq 240); do kill -0 $pid 2>/dev/null || break; sleep 1; done
+          echo "----- iteration $i BTL choice per peer job (first 40 distinct):"
+          grep -o "Using [a-z]* btl for send to \[\[[0-9]*,[0-9]*\],[0-9]*\] on node [^ ]*" run.log | sed "s/\[\[[0-9]*,\([0-9]*\)\],[0-9]*\]/job\1/" | sort | uniq -c | head -40
+          echo "----- iteration $i hostname knowledge: $(grep -c 'on node unknown' run.log) unknown vs $(grep 'Using [a-z]* btl for send' run.log | grep -vc 'on node unknown') known"
+          if kill -0 $pid 2>/dev/null; then
+            echo "HANG in iteration $i"
+            tail -4 run.log
+            pkill -9 -f "python test/main.py"; pkill -9 -f spawn_child; pkill -9 -f prted; pkill -9 -f prte
+            continue
+          fi
+          wait $pid; echo "exit=$?"; tail -2 run.log
+        done
