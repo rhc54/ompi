@@ -378,6 +378,9 @@ static int dpm_add_new_procs(opal_list_t *ilist)
         /* retrieve the local peers for the specified jobid */
         OPAL_MODEX_RECV_VALUE_IMMEDIATE(rc, PMIX_LOCAL_PEERS,
                                        &wildcard_rank, &val, PMIX_STRING);
+        opal_output(0, "DPMDBG %s: LOCAL_PEERS of job %s -> rc=%d val=%s",
+                    OPAL_NAME_PRINT(*OMPI_PROC_MY_NAME), OPAL_JOBID_PRINT(wildcard_rank.jobid),
+                    rc, (OPAL_SUCCESS == rc && NULL != val) ? val : "NONE");
         if (OPAL_SUCCESS == rc && NULL != val) {
             char **peers = opal_argv_split(val, ',');
             free(val);
@@ -427,6 +430,9 @@ static int dpm_add_new_procs(opal_list_t *ilist)
                     }
                 }
             }
+            opal_output(0, "DPMDBG %s: peer %s flags=0x%x",
+                        OPAL_NAME_PRINT(*OMPI_PROC_MY_NAME),
+                        OPAL_NAME_PRINT(proc->super.proc_name), proc->super.proc_flags);
             ++i;
         }
         if (NULL != local_ranks_in_jobid) {

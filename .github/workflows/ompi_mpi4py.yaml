@@ -158,6 +158,8 @@ jobs:
           echo "----- iteration $i BTL choice per peer job (first 40 distinct):"
           grep -o "Using [a-z]* btl for send to \[\[[0-9]*,[0-9]*\],[0-9]*\] on node [^ ]*" run.log | sed "s/\[\[[0-9]*,\([0-9]*\)\],[0-9]*\]/job\1/" | sort | uniq -c | head -40
           echo "----- iteration $i hostname knowledge: $(grep -c 'on node unknown' run.log) unknown vs $(grep 'Using [a-z]* btl for send' run.log | grep -vc 'on node unknown') known"
+          echo "----- iteration $i DPMDBG (first 30):"
+          grep DPMDBG run.log | head -30
           if kill -0 $pid 2>/dev/null; then
             echo "HANG in iteration $i"
             tail -4 run.log
