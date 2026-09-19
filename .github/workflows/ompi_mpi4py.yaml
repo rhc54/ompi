@@ -148,18 +148,20 @@ jobs:
         for i in 1 2 3 4; do
           what="-x TestExcErrhandlerNull"
           case $i in
-            1|3) mode=false ;;
-            *)   mode=true ;;
+            1) mode=true;  btl=self,sm ;;
+            2) mode=true;  btl=self,sm ;;
+            3) mode=false; btl=self,sm ;;
+            *) mode=true;  btl=self,sm,tcp ;;
           esac
-          echo "##### iteration $i: group_connect=$mode $what"
-          OMPI_MCA_mpi_dpm_group_connect=$mode OMPI_MCA_btl_base_verbose=100 mpiexec -n 1 python test/main.py -v $what > run.log 2>&1 &
+          echo "##### iteration $i: group_connect=$mode btl=$btl $what"
+          OMPI_MCA_btl=$btl OMPI_MCA_mpi_dpm_group_connect=$mode OMPI_MCA_btl_base_verbose=100 mpiexec -n 1 python test/main.py -v $what > run.log 2>&1 &
           pid=$!
           for t in $(seq 240); do kill -0 $pid 2>/dev/null || break; sleep 1; done
           echo "----- iteration $i BTL choice per peer job (first 40 distinct):"
           grep -o "Using [a-z]* btl for send to \[\[[0-9]*,[0-9]*\],[0-9]*\] on node [^ ]*" run.log | sed "s/\[\[[0-9]*,\([0-9]*\)\],[0-9]*\]/job\1/" | sort | uniq -c | head -40
           echo "----- iteration $i hostname knowledge: $(grep -c 'on node unknown' run.log) unknown vs $(grep 'Using [a-z]* btl for send' run.log | grep -vc 'on node unknown') known"
-          echo "----- iteration $i DPMDBG (first 30):"
-          grep DPMDBG run.log | head -30
+          echo "----- iteration $i errors:"
+          grep -i "unreachable\|not reach\|error\|FAIL" run.log | grep -v "ERRORS_\|errhandler\|Errhandler\|ErrorCode\|testError\|ErrorString\|ErrorClass\|error_" | head -15
           if kill -0 $pid 2>/dev/null; then
             echo "HANG in iteration $i"
             tail -4 run.log
